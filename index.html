@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PH ELITE | Intelligent Tracker</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-deep: #000;
+            --brand-green: #00FF7F;
+            --brand-yellow: #FFD700;
+            --neon-blue: #4facfe;
+            --neon-green: #00f2fe;
+            --accent-purple: #a18cd1;
+            --success: #34C759;
+            --glass: rgba(20, 25, 35, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-muted: #8e94a5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
+
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 70px); display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .active-screen { display: flex; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #555; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--brand-green); }
+        .nav-item.active-profile { color: var(--brand-yellow); }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-item span { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; }
+
+        .name-input { 
+            width: 100%; 
+            background: #111; 
+            border: 1px solid #333; 
+            padding: 15px; 
+            border-radius: 15px; 
+            color: var(--brand-green); 
+            text-align: center; 
+            margin-bottom: 15px; 
+            outline: none; 
+            transition: 0.3s;
+        }
+
+        .name-input:focus { color: #fff !important; border-color: var(--brand-green); }
+
+        .btn-start { 
+            background: var(--brand-green); 
+            color: #000; 
+            width: 100%; 
+            padding: 20px; 
+            border-radius: 22px; 
+            font-weight: 800; 
+            border: none; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            transition: transform 0.1s;
+        }
+        .btn-start:active { transform: scale(0.98); }
+
+        .btn-save-profile {
+            background: #000;
+            color: var(--brand-green);
+            border: 2px solid var(--brand-green);
+            width: 100%;
+            padding: 18px;
+            border-radius: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .profile-label { color: var(--brand-yellow); font-size: 0.7rem; font-weight: 800; display: block; margin-bottom: 5px; text-transform: uppercase; text-align: left; }
+
+        #screen-tracker { background: radial-gradient(circle at top right, #101820, #000); }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .ai-box { background: rgba(161, 140, 209, 0.05); border: 1px dashed var(--accent-purple); border-radius: 18px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-size: 0.75rem; }
+        .bento-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px; }
+        .card { background: var(--glass); border: 1px solid var(--border); border-radius: 24px; padding: 20px; }
+        .main-exercise { grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; }
+        .ex-title { font-size: 1.4rem; font-weight: 800; color: var(--accent-purple); }
+        .exercise-img { width: 100%; max-height: 110px; object-fit: contain; }
+        .metric-card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .metric-card strong { font-size: 2rem; color: var(--neon-blue); }
+        .stepper { display: flex; gap: 12px; justify-content: center; margin-bottom: 8px; }
+        .step { width: 40px; height: 40px; border-radius: 50%; background: #111; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #555; }
+        .step.current { border-color: var(--neon-green); color: var(--neon-green); }
+        .step.done { background: var(--success); color: #fff; border: none; }
+        .btn-circle { width: 95px; height: 95px; border-radius: 50%; background: #000; border: 4px solid var(--neon-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin: 20px auto; }
+
+        .history-item { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 18px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .history-date { font-weight: 800; color: var(--brand-green); font-size: 0.85rem; }
+        .history-vol { color: var(--neon-blue); font-weight: 800; font-size: 1rem; }
+
+        .profile-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+        .profile-pic-wrapper { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--brand-yellow); display: flex; align-items: center; justify-content: center; position: relative; background: #000; }
+        .profile-pic-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .camera-btn { position: absolute; bottom: 5px; right: 5px; background: var(--brand-yellow); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #000; cursor: pointer; }
+
+        #success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div id="success-overlay">
+        <i class="fa-solid fa-trophy" style="font-size: 4rem; color: var(--brand-green); margin-bottom: 20px;"></i>
+        <h2 id="success-title">BOA!</h2>
+        <p id="vol-final" style="color: #888; margin: 15px 0 30px;"></p>
+        <button class="btn-start" style="width: 200px" onclick="closeSuccess()">OK</button>
+    </div>
+
+    <div id="screen-welcome" class="screen active-screen">
+        <div class="welcome-card" style="margin: auto; text-align: center;">
+            <i class="fa-solid fa-bolt" style="font-size: 3rem; color: var(--brand-green); margin-bottom: 10px;"></i>
+            <p style="color: #555; font-size: 0.7rem; font-weight: 800; letter-spacing: 2px;">PH ELITE</p>
+            <h1 style="font-size: 3rem; margin-bottom: 20px;">TREINO<br>PRO.</h1>
+            <input type="text" id="user-name-input" class="name-input" placeholder="Seu nome...">
+            <button class="btn-start" onclick="initApp()">Entrar</button>
+        </div>
+    </div>
+
+    <div id="screen-tracker" class="screen">
+        <div class="top-bar">
+            <h2 style="font-size: 1.1rem; color: var(--brand-green);">TREINO ATUAL</h2>
+            <div style="color: var(--neon-green); font-weight: 800;"><i class="fa-regular fa-clock"></i> <span id="stopwatch">00:00</span></div>
+        </div>
+        <div class="ai-box">
+            <i class="fa-solid fa-robot" style="color: var(--accent-purple);"></i>
+            <span id="ai-greeting">IA: Vamos nessa!</span>
+        </div>
+        <div class="bento-grid">
+            <div class="card main-exercise">
+                <h1 class="ex-title">Pulley Frente</h1>
+                <img src="https://cdn-icons-png.flaticon.com/512/2548/2548530.png" class="exercise-img">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <div><p style="font-size: 0.5rem; color: #666">SÉRIES</p><strong>4</strong></div>
+                    <div><p style="font-size: 0.5rem; color: #666">DESCANSO</p><strong id="rest-timer">0s</strong></div>
+                </div>
+            </div>
+            <div class="card metric-card"><strong id="display-weight">0</strong><span>Carga (kg)</span></div>
+            <div class="card metric-card" onclick="updateReps()"><strong id="display-reps">12</strong><span>Reps</span></div>
+        </div>
+        <div style="background: var(--glass); border-radius: 24px; padding: 20px; text-align: center; margin-top: 15px;">
+            <div class="stepper">
+                <div id="s1" class="step current">1</div>
+                <div id="s2" class="step">2</div>
+                <div id="s3" class="step">3</div>
+                <div id="s4" class="step">4</div>
+            </div>
+        </div>
+        <div class="btn-circle" onclick="completeStep()"><i class="fa-solid fa-check"></i><span>FEITO</span></div>
+    </div>
+
+    <div id="screen-history" class="screen">
+        <div class="top-bar">
+            <h2 style="font-size: 1.2rem; color: var(--brand-green);">WIKI DE TREINOS</h2>
+            <i class="fa-solid fa-trash-can" onclick="clearHistory()" style="color: #ff4444;"></i>
+        </div>
+        <div id="history-content" style="margin-top: 20px;"></div>
+    </div>
+
+    <div id="screen-profile" class="screen">
+        <h2 style="font-size: 1.5rem; color: var(--brand-yellow); margin-bottom: 20px; text-transform: uppercase; font-weight: 800;">Meu Perfil</h2>
+        <div class="profile-container">
+            <div class="profile-pic-wrapper">
+                <img id="profile-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
+                <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="loadPhoto(event)">
+                <div class="camera-btn" onclick="document.getElementById('file-input').click()">
+                    <i class="fa-solid fa-camera" style="color: #000; font-size: 0.9rem;"></i>
+                </div>
+            </div>
+            <h3 style="margin-top: 15px; color: var(--brand-yellow); font-weight: 800;">Usuário Elite</h3>
+        </div>
+        <div>
+            <label class="profile-label">Nome</label>
+            <input type="text" id="p-nome" class="name-input" style="text-align: left;">
+            <label class="profile-label">Sobrenome</label>
+            <input type="text" id="p-sobrenome" class="name-input" style="text-align: left;" placeholder="Sobrenome">
+            <label class="profile-label">Idade</label>
+            <input type="number" id="p-idade" class="name-input" style="text-align: left;" placeholder="Ex: 25">
+            <label class="profile-label">Endereço</label>
+            <input type="text" id="p-endereco" class="name-input" style="text-align: left;" placeholder="Cidade/UF">
+            <button class="btn-save-profile" onclick="saveProfile()">Salvar Alterações</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" id="main-nav" style="display: none;">
+        <div class="nav-item active" id="nav-train" onclick="changeTab('tracker')">
+            <i class="fa-solid fa-dumbbell"></i>
+            <span>Treino</span>
+        </div>
+        <div class="nav-item" id="nav-history" onclick="changeTab('history')">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Histórico</span>
+        </div>
+        <div class="nav-item" id="nav-profile" onclick="changeTab('profile')">
+            <i class="fa-solid fa-user"></i>
+            <span>Perfil</span>
+        </div>
+    </nav>
+
+    <script>
+        let currentSet = 1, baseWeight = 5, reps = 12, totalSeconds = 0, restInterval, totalVolume = 0, userName = "";
+
+        function initApp() {
+            userName = document.getElementById('user-name-input').value.trim() || "Atleta";
+            document.getElementById('p-nome').value = userName;
+            document.getElementById('screen-welcome').style.display = 'none';
+            document.getElementById('main-nav').style.display = 'flex';
+            changeTab('tracker');
+            startGlobalClock();
+            document.getElementById('ai-greeting').innerText = `IA: Foco total, ${userName}!`;
+        }
+
+        function changeTab(tab) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active', 'active-profile'));
+            
+            if(tab === 'tracker') {
+                document.getElementById('screen-tracker').classList.add('active-screen');
+                document.getElementById('nav-train').classList.add('active');
+            } else if(tab === 'history') {
+                document.getElementById('screen-history').classList.add('active-screen');
+                document.getElementById('nav-history').classList.add('active');
+                renderHistory();
+            } else if(tab === 'profile') {
+                document.getElementById('screen-profile').classList.add('active-screen');
+                document.getElementById('nav-profile').classList.add('active-profile');
+            }
+        }
+
+        function startGlobalClock() {
+            setInterval(() => {
+                totalSeconds++;
+                let m = Math.floor(totalSeconds/60).toString().padStart(2,'0'), s = (totalSeconds%60).toString().padStart(2,'0');
+                if(document.getElementById('stopwatch')) document.getElementById('stopwatch').innerText = `${m}:${s}`;
+            }, 1000);
+            document.getElementById('display-weight').innerText = reps * baseWeight;
+        }
+
+        function updateReps() {
+            let val = prompt("Reps:", reps);
+            if(val) { reps = parseInt(val); document.getElementById('display-reps').innerText = reps; document.getElementById('display-weight').innerText = reps * baseWeight; }
+        }
+
+        function completeStep() {
+            if(currentSet <= 4) {
+                totalVolume += (reps * baseWeight);
+                document.getElementById('s' + currentSet).className = 'step done';
+                document.getElementById('s' + currentSet).innerHTML = '✓';
+                if(currentSet < 4) {
+                    currentSet++;
+                    document.getElementById('s' + currentSet).className = 'step current';
+                    let s = 0; clearInterval(restInterval);
+                    restInterval = setInterval(() => { s++; document.getElementById('rest-timer').innerText = s + 's'; }, 1000);
+                } else {
+                    saveWorkout();
+                    document.getElementById('success-title').innerText = "BOA!";
+                    document.getElementById('vol-final').innerText = `Volume Total: ${totalVolume}kg`;
+                    document.getElementById('success-overlay').style.display = 'flex';
+                }
+            }
+        }
+
+        function saveWorkout() {
+            const now = new Date();
+            const workout = {
+                date: now.toLocaleDateString('pt-BR'),
+                time: now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                volume: totalVolume
+            };
+            let history = JSON.parse(localStorage.getItem('ph_history') || '[]');
+            history.unshift(workout);
+            localStorage.setItem('ph_history', JSON.stringify(history));
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-content');
+            let history = JSON.parse(localStorage.getItem('ph_history') || '[]');
+            container.innerHTML = history.length ? '' : '<p style="text-align:center;color:#444;margin-top:40px;">Sem treinos registrados.</p>';
+            history.forEach(item => {
+                container.innerHTML += `
+                    <div class="history-item">
+                        <div><div class="history-date">${item.date} às ${item.time}</div></div>
+                        <div class="history-vol">${item.volume}kg</div>
+                    </div>`;
+            });
+        }
+
+        function closeSuccess() {
+            document.getElementById('success-overlay').style.display = 'none';
+            if(document.getElementById('success-title').innerText === "BOA!") {
+                currentSet = 1;
+                totalVolume = 0;
+                clearInterval(restInterval);
+                document.getElementById('rest-timer').innerText = '0s';
+                for(let i=1; i<=4; i++) {
+                    let s = document.getElementById('s' + i);
+                    s.className = i === 1 ? 'step current' : 'step';
+                    s.innerHTML = i;
+                }
+            }
+            changeTab('tracker');
+        }
+
+        function saveProfile() {
+            userName = document.getElementById('p-nome').value;
+            document.getElementById('success-title').innerText = "PERFIL ATUALIZADO!";
+            document.getElementById('vol-final').innerText = "Alterações salvas com sucesso.";
+            document.getElementById('success-overlay').style.display = 'flex';
+        }
+
+        function loadPhoto(event) {
+            const reader = new FileReader();
+            reader.onload = function() { document.getElementById('profile-img').src = reader.result; }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function clearHistory() {
+            if(confirm("Apagar histórico?")) { localStorage.removeItem('ph_history'); renderHistory(); }
+        }
+    </script>
+</body>
+</html>
